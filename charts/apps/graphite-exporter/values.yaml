@@ -1,0 +1,182 @@
+---
+containers:
+  main:
+    image:
+      pullPolicy: IfNotPresent
+      repository: prom/graphite-exporter
+      tag: v0.16.0@sha256:e54bca6645ea8a9e8c52312a8540de98ad08819d38476c021d77a0eae75bc797
+
+    probes:
+      liveness:
+        httpGet:
+          path: /metrics
+
+      readiness:
+        httpGet:
+          path: /metrics
+
+      startup:
+        httpGet:
+          path: /metrics
+
+    args:
+      - "--graphite.listen-address=:9109"
+
+services:
+  main:
+    enabled: true
+    annotations: {}
+    labels: {}
+    ports:
+      main:
+        protocol: TCP
+        port: 9108
+
+  graphite:
+    enabled: true
+    type: LoadBalancer
+    annotations: {}
+    labels: {}
+    ports:
+      graphite-udp:
+        protocol: UDP
+        port: 9109
+      graphite-tcp:
+          protocol: TCP
+          port: 9109
+
+ingress:
+  main:
+    enabled: true
+    hosts:
+      - host: graphite-exporter.fqdn.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+serviceMonitor:
+  enabled: true
+  endpoints:
+    - port: main
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: ^(scale_.*)
+          action: keep
+
+        - sourceLabels: [__name__]
+          regex: ^scale_([^_]+)_.*
+          targetLabel: hostname
+          replacement: ${1}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^scale_[^_]+_([^_]+)_.*
+          targetLabel: service
+          replacement: ${1}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^.*_cpu_cpu([0-9]+)
+          targetLabel: cpu
+          replacement: cpu${1}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^.*_cputemp_temperatures_cpu([0-9]+)
+          targetLabel: cpu
+          replacement: cpu${1}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^.*_net_speed_([^_]+)_[^_\n]+
+          targetLabel: interface
+          replacement: ${1}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*_net_speed).*
+          targetLabel: __name__
+          replacement: ${1}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(scale_truenas)_truenas_(.*)$
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^scale_[^_]+_(.*)
+          targetLabel: __name__
+          replacement: truenas_${1}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(uptime)_uptime
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(cpu)_cpu([0-9]+)?
+          targetLabel: __name__
+          replacement: ${1}_${2}${3}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(total)_total
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(available)_available
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(size)_size
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(avail)_avail
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(free)_free
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(l2bytes)_l2bytes
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(l2hits)_l2hits
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(l2miss)_l2miss
+          targetLabel: __name__
+          replacement: ${1}_${2}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: ^(.*)_(load)_load(1|5|15)
+          targetLabel: __name__
+          replacement: ${1}_${2}${3}
+          action: replace
+
+        - sourceLabels: [__name__]
+          regex: 'truenas_(system_uptime.*|cpu_usage.*|cputemp.*|system_load.*|meminfo.*|arcstats.*|net_.*(speed|received|sent).*|disk_stats_busy__serial_lunid.*)'
+          action: keep

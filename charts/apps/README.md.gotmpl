@@ -1,0 +1,62 @@
+{{/*
+Global README template for helm-docs.
+This template is applied to each chart to produce a consistent, detailed README.
+Docs: https://github.com/norwoodj/helm-docs
+*/}}
+
+{{ template "chart.header" . }}
+
+{{ template "chart.description" . }}
+
+---
+
+{{ template "chart.versionBadge" . }} {{ template "chart.typeBadge" . }} {{ template "chart.appVersionBadge" . }}
+
+
+{{ template "chart.homepageLine" . }}
+
+
+{{ template "chart.sourcesSection" . }}
+
+## Requirements
+
+{{ template "chart.requirementsSection" . }}
+
+- Helm: v3+
+
+## Getting Started
+
+### Add repository
+
+```bash
+helm repo add {{ template "chart.name" . }} https://example.com/helm-charts
+helm repo update
+```
+
+### Install
+
+```bash
+helm install my-{{ template "chart.name" . }} {{ template "chart.name" . }}/{{ template "chart.name" . }} \
+  --namespace {{ template "chart.name" . }} \
+  --create-namespace
+```
+
+### Upgrade
+
+```bash
+helm upgrade my-{{ template "chart.name" . }} {{ template "chart.name" . }}/{{ template "chart.name" . }} \
+  --namespace {{ template "chart.name" . }} \
+  --install
+```
+
+### Uninstall
+
+```bash
+helm uninstall my-{{ template "chart.name" . }} --namespace {{ template "chart.name" . }}
+```
+
+{{ template "chart.valuesSectionHtml" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

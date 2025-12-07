@@ -1,0 +1,184 @@
+---
+# Source: common-test/templates/common.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ma-release-common-test-main
+  namespace: ma-release-common-test
+  labels:
+    app.kubernetes.io/name: common-test
+    helm.sh/chart: common-test-0.1.0
+    app.kubernetes.io/instance: ma-release
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - name: main
+      port: 80
+      protocol: TCP
+      targetPort: main
+  selector:
+    app.kubernetes.io/name: common-test
+    app.kubernetes.io/instance: ma-release
+...
+---
+# Source: common-test/templates/common.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ma-release-common-test
+  namespace: ma-release-common-test
+  labels:
+    app.kubernetes.io/name: common-test
+    helm.sh/chart: common-test-0.1.0
+    app.kubernetes.io/instance: ma-release
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: common-test
+      app.kubernetes.io/instance: ma-release
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: common-test
+        app.kubernetes.io/instance: ma-release
+      annotations:
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: 
+          image: "traefik/whoami:v1.10@sha256:1699d99cb4b9acc17f74ca670b3d8d0b7ba27c948b3445f0593b58ebece92f04"
+          imagePullPolicy: Always
+          ports:
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: main
+              scheme: HTTP
+            initialDelaySeconds: 30
+            failureThreshold: 3
+            successThreshold: 1
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: main
+              scheme: HTTP
+            initialDelaySeconds: 30
+            failureThreshold: 3
+            successThreshold: 1
+            periodSeconds: 10
+            timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /health
+              port: main
+              scheme: HTTP
+            initialDelaySeconds: 60
+            failureThreshold: 3
+            successThreshold: 1
+            periodSeconds: 10
+            timeoutSeconds: 5
+          args:
+            - --test-arg=value
+          env:
+            - name: envtest
+              value: thevalue
+            - name: valuefrom
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: my-secret
+          resources:
+            limits:
+              cpu: 2
+              memory: 2Gi
+            requests:
+              cpu: 1m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+...
+---
+# Source: common-test/templates/common.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ma-release-common-test
+  namespace: ma-release-common-test
+  labels:
+    test: true
+    app.kubernetes.io/name: common-test
+    helm.sh/chart: common-test-0.1.0
+    app.kubernetes.io/instance: ma-release
+    app.kubernetes.io/managed-by: Helm
+spec:
+  ingressClassName: "traefik"
+  rules:
+    - host: chart-example.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ma-release-common-test-main
+                port:
+                  name: main
+          - path: /testpath
+            pathType: Prefix
+            backend:
+              service:
+                name: ma-release-common-test-main
+                port:
+                  name: main
+    - host: another-chart-example.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ma-release-common-test-main
+                port:
+                  name: main
+          - path: /testpath
+            pathType: Prefix
+            backend:
+              service:
+                name: ma-release-common-test-main
+                port:
+                  name: main
+...
+---
+# Source: common-test/templates/common.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ma-release-common-test
+  namespace: ma-release-common-test
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: common-test
+      app.kubernetes.io/instance: ma-release
+  endpoints:
+    - port: main
+
+...

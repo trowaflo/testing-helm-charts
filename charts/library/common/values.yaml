@@ -1,50 +1,158 @@
-# Default values for common library chart
-# Common configuration values
-
+---
+# -- Number of desired pods (replicas) for the deployment. Modify to scale the application horizontally
+# @section -- Global settings
 replicaCount: 1
 
-image:
-  repository: nginx
-  pullPolicy: IfNotPresent
-  tag: "latest"
+# -- Number of revisions to keep for rollback purposes. Set to 3 for balanced history management
+# @section -- Global settings
+revisionHistoryLimit: 3
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+# -- Override the Helm-generated release name. Lower priority than fullnameOverride
+# @section -- Global settings
+nameOverride: ''
+# -- Fully override the chart name for Kubernetes resource names. Useful when deploying multiple instances with the same chart
+# @section -- Global settings
+fullnameOverride: ''
+# -- Override the namespace where resources are deployed. Leave empty to use the release namespace
+# @section -- Global settings
+namespaceOverride: ''
 
-serviceAccount:
-  create: true
-  annotations: {}
-  name: ""
+# -- Containers configuration. Additional containers can be added under the 'containers' key.
+# @default -- The chart will always construct the main container.
+# @section -- Containers configuration
+containers:
+  main:
+    # -- Command-line arguments passed to the container entrypoint. Use this to override or extend the container's startup command
+    # @section -- Containers configuration
+    args: []
 
-podAnnotations: {}
+    # -- Environment variables injected into containers. Can reference ConfigMaps or Secrets via valueFrom
+    # @section -- Containers configuration
+    env: {}
 
+    # -- Container image configuration including repository, tag, and pull policy
+    # @section -- Containers configuration
+    image:
+      pullPolicy: Always
+      repository: traefik/whoami
+      tag: latest
+
+    # -- List of imagePullSecrets for private container registries. Reference pre-created Secrets in the same namespace
+    # @section -- Containers configuration
+    imagePullSecrets: []
+
+    probes:
+      # -- Liveness probe configuration
+      # @section -- Containers configuration
+      liveness:
+        enabled: true
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: main
+          scheme: HTTP
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 5
+
+      # -- Readiness probe configuration
+      # @section -- Containers configuration
+      readiness:
+        enabled: true
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: main
+          scheme: HTTP
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 5
+
+      # -- Startup probe configuration
+      # @section -- Containers configuration
+      startup:
+        enabled: true
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: main
+          scheme: HTTP
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 5
+
+    # -- CPU and memory resource allocation for the container
+    # @section -- Containers configuration
+    resources:
+      limits:
+        cpu: 2
+        memory: 2Gi
+      requests:
+        cpu: 1m
+        memory: 32Mi
+
+# -- Security context settings applied at the pod level for enhanced security
+# @section -- Global settings
 podSecurityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-
-securityContext:
   allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+  seccompProfile:
+    type: RuntimeDefault
   capabilities:
-    drop:
-      - ALL
+    drop: ["ALL"]
   readOnlyRootFilesystem: true
 
-service:
-  type: ClusterIP
-  port: 80
-  targetPort: 8080
+# -- Service configuration. Additional services can be added under the 'services' key.
+# @section -- Services configuration
+services:
+  main:
+    enabled: true
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    ports:
+      main:
+        protocol: TCP
+        port: 80
 
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 250m
-    memory: 256Mi
+# -- Ingress configuration. Additional ingress resources can be added under the 'ingress' key.
+# @section -- Ingress configuration
+ingress:
+  main:
+    enabled: false
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
+          - path: /testpath
+            pathType: Prefix
+      # @ignored -- Example of adding another host to the Ingress configuration
+      - host: another-chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
+          - path: /testpath
+            pathType: Prefix
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
+# -- Monitoring configuration. Additional monitoring resources can be added under the 'serviceMonitor' key.
+# @section -- Monitoring configuration
+serviceMonitor:
+  enabled: true
+  labels:
+    release: prometheus
+  endpoints:
+    - port: main
+      metricRelabelings:
+        - action: replace
+          sourceLabels: ["__name__"]
+          regex: "olstring_(.*)"
+          replacement: "newstring_$1"
+          targetLabel: "__name__"
+# -- Deployment update strategy configuration
+# @section -- Global settings
+strategyType: Recreate

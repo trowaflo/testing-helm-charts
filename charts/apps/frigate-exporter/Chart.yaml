@@ -1,0 +1,29 @@
+apiVersion: v2
+name: frigate-exporter
+version: 0.0.14
+type: application
+description: |-
+  Prometheus exporter for Frigate NVR (Network Video Recorder) system.
+  Exports metrics from Frigate cameras, detections, and recording statistics
+  in Prometheus-compatible format for integration with monitoring stacks.
+keywords:
+  - prometheus
+  - exporter
+  - frigate
+  - nvr
+  - video
+  - monitoring
+  - metrics
+home: https://github.com/bairhys/prometheus-frigate-exporter
+icon: https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/images/prometheus-logo.svg
+maintainers:
+  - name: trowaflo
+    email: trowa.flo@gmail.com
+sources:
+  - https://github.com/bairhys/prometheus-frigate-exporter
+  - https://github.com/trowaflo/helm-charts
+
+dependencies:
+  - name: common
+    version: 1.0.0
+    repository: file://../../library/common

@@ -1,0 +1,6 @@
+{{- $newEnv := include "frigateExporter.env" . | fromYaml -}}
+{{- $_ := set .Values "newEnv" $newEnv -}}
+{{- $mergedenv := concat $.Values.containers.main.env .Values.newEnv.env }}
+{{- $_ := set $.Values.containers.main "env" $mergedenv -}}
+
+{{- include "common.loader" . -}}

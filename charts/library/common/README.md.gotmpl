@@ -1,0 +1,25 @@
+{{/*
+Global README template for helm-docs.
+This template is applied to each chart to produce a consistent, detailed README.
+Docs: https://github.com/norwoodj/helm-docs
+*/}}
+
+{{ template "chart.header" . }}
+
+{{ template "chart.description" . }}
+
+---
+
+{{ template "chart.versionBadge" . }} {{ template "chart.typeBadge" . }} {{ template "chart.appVersionBadge" . }}
+
+## Requirements
+
+{{ template "chart.requirementsSection" . }}
+
+- Helm: v3+
+
+{{ template "chart.valuesSectionHtml" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

@@ -1,0 +1,51 @@
+---
+containers:
+  main:
+    image:
+      pullPolicy: IfNotPresent
+      repository: rhysbailey/prometheus-frigate-exporter
+      tag: 0.1.1@sha256:6df30ca30c5a69df4f3b21c06a93043a52baf523f808de56f4a40982393b8aff
+
+    probes:
+      enabled: true
+
+      liveness:
+        httpGet:
+          path: /metrics
+
+      readiness:
+        httpGet:
+          path: /metrics
+
+      startup:
+        httpGet:
+          path: /metrics
+
+    resources:
+      limits:
+        cpu: 100m
+        memory: 64Mi
+
+      requests:
+        cpu: 1m
+        memory: 32Mi
+
+    env: []
+
+podSecurityContext:
+  runAsUser: 1000
+
+services:
+  main:
+    enabled: true
+    annotations: {}
+    labels: {}
+    ports:
+      main:
+        protocol: TCP
+        port: 9100
+
+serviceMonitor:
+  enabled: true
+  endpoints:
+    - port: main

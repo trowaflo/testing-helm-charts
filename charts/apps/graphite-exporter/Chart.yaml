@@ -1,0 +1,28 @@
+apiVersion: v2
+name: graphite-exporter
+version: 0.0.1
+type: application
+description: |-
+  Prometheus exporter for converting Graphite plaintext protocol metrics to Prometheus format.
+  Enables Prometheus to scrape metrics from legacy Graphite systems and sources
+  (e.g., TrueNAS, custom monitoring systems) that emit Graphite-formatted metrics.
+keywords:
+  - prometheus
+  - exporter
+  - graphite
+  - monitoring
+  - metrics
+  - truenas
+  - plaintext
+home: https://github.com/prometheus/graphite_exporter
+icon: https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/images/prometheus-logo.svg
+maintainers:
+  - name: trowaflo
+    email: trowa.flo@gmail.com
+sources:
+  - https://github.com/prometheus/graphite_exporter
+  - https://github.com/trowaflo/helm-charts
+dependencies:
+  - name: common
+    version: 1.0.0
+    repository: file://../../library/common

@@ -46,39 +46,33 @@ jobs:
         id: charts
         run: |
           charts_changed=""
-          if [[ "${{ steps.changed-files.outputs.all_changed_files }}" == *"charts/library/common/"* ]]; then
-            charts_changed="common $charts_changed"
-          fi
-          if [[ "${{ steps.changed-files.outputs.all_changed_files }}" == *"charts/library/common-test/"* ]]; then
-            charts_changed="common-test $charts_changed"
-          fi
-          if [[ "${{ steps.changed-files.outputs.all_changed_files }}" == *"charts/apps/webapp/"* ]]; then
-            charts_changed="webapp $charts_changed"
-          fi
-          if [[ "${{ steps.changed-files.outputs.all_changed_files }}" == *"charts/apps/api/"* ]]; then
-            charts_changed="api $charts_changed"
-          fi
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            # Extract chart path (e.g., charts/library/common or charts/apps/webapp)
+            if [[ $file =~ ^charts/(library|apps)/([^/]+)/ ]]; then
+              chart_type="${BASH_REMATCH[1]}"
+              chart_name="${BASH_REMATCH[2]}"
+              chart_path="charts/$chart_type/$chart_name"
+
+              # Only add if this is a real chart directory
+              if [[ -f "$chart_path/Chart.yaml" ]]; then
+                if [[ ! " $charts_changed " =~ " $chart_path " ]]; then
+                  charts_changed="$chart_path $charts_changed"
+                fi
+              fi
+            fi
+          done
           echo "charts=$charts_changed" >> $GITHUB_OUTPUT
 
       - name: Update chart versions
         if: steps.charts.outputs.charts != ''
         run: |
-          for chart in ${{ steps.charts.outputs.charts }}; do
-            chart_path=""
-            if [[ $chart == "common" ]]; then
-              chart_path="charts/library/common"
-            elif [[ $chart == "common-test" ]]; then
-              chart_path="charts/library/common-test"
-            else
-              chart_path="charts/apps/$chart"
-            fi
-
+          for chart_path in ${{ steps.charts.outputs.charts }}; do
             if [[ -f "$chart_path/Chart.yaml" ]]; then
               current_version=$(grep "^version:" "$chart_path/Chart.yaml" | awk '{print $2}')
               # Bump patch version
               new_version=$(echo $current_version | awk -F. '{print $1"."$2"."$3+1}')
               sed -i "s/^version: $current_version/version: $new_version/" "$chart_path/Chart.yaml"
-              echo "Updated $chart from $current_version to $new_version"
+              echo "Updated $chart_path from $current_version to $new_version"
             fi
           done
 
@@ -87,6 +81,15 @@ jobs:
         run: |
           git add charts/*/Chart.yaml charts/*/*/Chart.yaml
           git commit -m "chore: bump chart versions" || echo "No changes to commit"
+
+      - name: Update dependencies
+        run: |
+          for chart in charts/library/* charts/apps/*; do
+            if [[ -f "$chart/Chart.yaml" ]]; then
+              echo "Updating dependencies for $chart"
+              helm dependency update "$chart" 2>/dev/null || true
+            fi
+          done
 
       - name: Lint Helm charts
         run: |
