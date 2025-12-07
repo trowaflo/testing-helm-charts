@@ -1,0 +1,18 @@
+---
+containers:
+  main:
+    args:
+      - "--test-arg=value"
+
+    env:
+      - name: envtest
+        value: thevalue
+      - name: valuefrom
+        valueFrom:
+          secretKeyRef:
+            name: my-secret
+            key: password
+
+ingress:
+  main:
+    enabled: true

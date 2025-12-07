@@ -1,0 +1,20 @@
+apiVersion: v2
+name: common-test
+version: 0.1.0
+type: application
+description: |-
+  Test application chart demonstrating and validating the common library chart functionality.
+  Provides unit test scenarios covering common chart features including deployments,
+  services, ingress, security contexts, and Prometheus integration.
+
+  This chart is NOT intended for production use. It serves as a reference implementation
+  and testing vehicle for the common library.
+maintainers:
+  - name: trowaflo
+    email: trowa.flo@gmail.com
+sources:
+  - https://github.com/trowaflo/helm-charts
+dependencies:
+  - name: common
+    version: 1.0.0
+    repository: file://../common
