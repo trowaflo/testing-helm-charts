@@ -2,8 +2,8 @@ name: Helm Chart Version Bump (PR)
 
 on:
   pull_request:
-    # paths:
-    #   - "charts/**"
+    paths:
+      - "charts/**"
 
 jobs:
   bump-version:
