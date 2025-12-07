@@ -57,27 +57,41 @@ jobs:
           echo "bump=$bump"
           echo "bump=$bump" >> $GITHUB_OUTPUT
 
-      - name: Bump Chart.yaml version
-        if: steps.bump.outputs.bump != 'none'
+      - name: Detect changed charts
+        id: detect_charts
         run: |
           set -x
-          # Récupérer la branche de base de la PR
           BASE_BRANCH=${{ github.event.pull_request.base.ref }}
-          echo "Base branch: $BASE_BRANCH"
-
-          # Fetch complet pour que Git connaisse la branche
           git fetch origin $BASE_BRANCH
 
-          for chart_dir in $(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '^charts/' | xargs -n1 dirname | sort -u); do
+          charts_to_bump=()
+          for file in $(git diff --name-only origin/$BASE_BRANCH..HEAD | grep '^charts/' || true); do
+            chart_dir=$(dirname "$file")
             while [ ! -f "$chart_dir/Chart.yaml" ] && [ "$chart_dir" != "." ]; do
               chart_dir=$(dirname "$chart_dir")
             done
-
             chart="$chart_dir/Chart.yaml"
-            current=$(grep '^version:' $chart | awk '{print $2}')
-            new=$(npx semver $current -i ${{ steps.bump.outputs.bump }})
+            if [ -f "$chart" ] && [[ ! " ${charts_to_bump[@]} " =~ " ${chart} " ]]; then
+              charts_to_bump+=("$chart")
+            fi
+          done
+
+          echo "charts_to_bump=${charts_to_bump[*]}" >> $GITHUB_OUTPUT
+          echo "Charts to bump: ${charts_to_bump[*]}"
+
+      # Step 3 – Bump chart versions + commit
+      - name: Bump chart versions
+        if: steps.bump.outputs.bump != 'none' && steps.detect_charts.outputs.charts_to_bump != ''
+        run: |
+          set -x
+          BUMP_TYPE=${{ steps.bump.outputs.bump }}
+          echo "Bump type: $BUMP_TYPE"
+
+          for chart in ${{ steps.detect_charts.outputs.charts_to_bump }}; do
+            current=$(grep '^version:' "$chart" | awk '{print $2}')
+            new=$(npx semver $current -i $BUMP_TYPE)
             echo "Updating $chart from $current to $new"
-            sed -i "s/^version:.*/version: $new/" $chart
+            sed -i "s/^version:.*/version: $new/" "$chart"
           done
 
       - name: Commit bump
