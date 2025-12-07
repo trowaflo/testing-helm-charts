@@ -1,0 +1,131 @@
+name: Release Charts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/**'
+      - '.github/workflows/release.yaml'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add stable https://charts.helm.sh/stable
+          helm repo update
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v40
+        with:
+          files: |
+            charts/**
+
+      - name: Detect chart changes
+        id: charts
+        run: |
+          charts_changed=""
+          if [[ "${{ steps.changed-files.outputs.all_changed_files }}" == *"charts/library/common/"* ]]; then
+            charts_changed="common $charts_changed"
+          fi
+          if [[ "${{ steps.changed-files.outputs.all_changed_files }}" == *"charts/library/common-test/"* ]]; then
+            charts_changed="common-test $charts_changed"
+          fi
+          if [[ "${{ steps.changed-files.outputs.all_changed_files }}" == *"charts/apps/webapp/"* ]]; then
+            charts_changed="webapp $charts_changed"
+          fi
+          if [[ "${{ steps.changed-files.outputs.all_changed_files }}" == *"charts/apps/api/"* ]]; then
+            charts_changed="api $charts_changed"
+          fi
+          echo "charts=$charts_changed" >> $GITHUB_OUTPUT
+
+      - name: Update chart versions
+        if: steps.charts.outputs.charts != ''
+        run: |
+          for chart in ${{ steps.charts.outputs.charts }}; do
+            chart_path=""
+            if [[ $chart == "common" ]]; then
+              chart_path="charts/library/common"
+            elif [[ $chart == "common-test" ]]; then
+              chart_path="charts/library/common-test"
+            else
+              chart_path="charts/apps/$chart"
+            fi
+
+            if [[ -f "$chart_path/Chart.yaml" ]]; then
+              current_version=$(grep "^version:" "$chart_path/Chart.yaml" | awk '{print $2}')
+              # Bump patch version
+              new_version=$(echo $current_version | awk -F. '{print $1"."$2"."$3+1}')
+              sed -i "s/^version: $current_version/version: $new_version/" "$chart_path/Chart.yaml"
+              echo "Updated $chart from $current_version to $new_version"
+            fi
+          done
+
+      - name: Commit version updates
+        if: steps.charts.outputs.charts != ''
+        run: |
+          git add charts/*/Chart.yaml charts/*/*/Chart.yaml
+          git commit -m "chore: bump chart versions" || echo "No changes to commit"
+
+      - name: Lint Helm charts
+        run: |
+          for chart in charts/library/* charts/apps/*; do
+            if [[ -f "$chart/Chart.yaml" ]]; then
+              echo "Linting $chart"
+              helm lint "$chart"
+            fi
+          done
+
+      - name: Package charts
+        run: |
+          mkdir -p gh-pages
+          for chart in charts/library/* charts/apps/*; do
+            if [[ -f "$chart/Chart.yaml" ]]; then
+              echo "Packaging $chart"
+              helm package "$chart" -d gh-pages
+            fi
+          done
+
+      - name: Update Helm index
+        run: |
+          cd gh-pages
+          helm repo index . --url https://github.com/${{ github.repository }}/releases/download/charts/
+          cd ..
+
+      - name: Create release
+        if: steps.charts.outputs.charts != ''
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: charts-$(date +%Y%m%d-%H%M%S)
+          files: gh-pages/*.tgz
+          body: |
+            ## Charts Released
+            - ${{ steps.charts.outputs.charts }}
+
+            ### Installation
+            ```bash
+            helm repo add my-charts https://github.com/${{ github.repository }}/releases/download/charts/
+            helm repo update
+            helm install <release-name> my-charts/<chart-name>
+            ```
