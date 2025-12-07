@@ -1,0 +1,97 @@
+name: Helm Chart Version Bump (PR)
+
+on:
+  pull_request:
+    paths:
+      - "charts/**"
+
+jobs:
+  bump-version:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # récupère toutes les branches pour que git log fonctionne correctement
+          ref: ${{ github.head_ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install tools
+        run: npm install -g semver
+
+      - name: Detect changed charts
+        id: detect_charts
+        run: |
+          BASE_BRANCH=${{ github.event.pull_request.base.ref }}
+          git fetch origin $BASE_BRANCH
+
+          charts_to_bump=()
+          for file in $(git diff --name-only origin/$BASE_BRANCH..HEAD | grep '^charts/' || true); do
+            chart_dir=$(dirname "$file")
+            while [ ! -f "$chart_dir/Chart.yaml" ] && [ "$chart_dir" != "." ]; do
+              chart_dir=$(dirname "$chart_dir")
+            done
+            chart="$chart_dir/Chart.yaml"
+            if [ -f "$chart" ] && [[ ! " ${charts_to_bump[@]} " =~ " ${chart} " ]]; then
+              charts_to_bump+=("$chart")
+            fi
+          done
+
+          echo "charts_to_bump=${charts_to_bump[*]}" >> $GITHUB_OUTPUT
+          echo "Charts to bump: ${charts_to_bump[*]}"
+
+      # Step 2 – Bump chart versions + commit
+      - name: Bump chart versions
+        if: steps.detect_charts.outputs.charts_to_bump != ''
+        run: |
+          BASE_BRANCH=${{ github.event.pull_request.base.ref }}
+          git fetch origin $BASE_BRANCH
+
+          for chart in ${{ steps.detect_charts.outputs.charts_to_bump }}; do
+            chart_dir=$(dirname "$chart")
+
+            # Commits affectant uniquement ce chart
+            COMMITS=$(git log --pretty=%s --no-merges origin/$BASE_BRANCH..HEAD -- "$chart_dir")
+            echo "Commits affecting $chart:"
+            echo "$COMMITS"
+
+            # Déterminer bump pour ce chart
+            bump="patch"
+            if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+              bump="major"
+            elif echo "$COMMITS" | grep -Eq "^[a-z]+(\([a-z0-9_-]+\))?!:"; then
+              bump="major"
+            elif echo "$COMMITS" | grep -q "^feat"; then
+              bump="minor"
+            elif echo "$COMMITS" | grep -q "^fix"; then
+              bump="patch"
+            else
+              bump="none"
+            fi
+
+            echo "Bump for $chart: $bump"
+
+            if [ "$bump" != "none" ]; then
+              current=$(grep '^version:' "$chart" | awk '{print $2}')
+              new=$(npx semver $current -i $bump)
+              sed -i "s/^version:.*/version: $new/" "$chart"
+              echo "Updated $chart from $current to $new"
+            fi
+          done
+
+      - name: Commit bump
+        if: steps.bump.outputs.bump != 'none'
+        run: |
+          set -x
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add charts/**/Chart.yaml
+          git commit -m "ci: bump chart versions [skip ci]"
+          git push

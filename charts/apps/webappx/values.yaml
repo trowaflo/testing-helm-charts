@@ -13,7 +13,6 @@ containers:
             name: my-secret
             key: password
 
-
 ingress:
   main:
     enabled: true
