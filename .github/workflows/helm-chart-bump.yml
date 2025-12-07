@@ -66,7 +66,8 @@ jobs:
           # Fetch complet pour que Git connaisse la branche
           git fetch origin $BASE_BRANCH
 
-          for chart in $(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '^charts/' | xargs -n1 dirname | sort -u); do
+          for chart_dir in $(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '^charts/' | xargs -n1 dirname | sort -u); do
+            chart="$chart_dir/Chart.yaml"
             current=$(grep '^version:' $chart | awk '{print $2}')
             new=$(npx semver $current -i ${{ steps.bump.outputs.bump }})
             echo "Updating $chart from $current to $new"
