@@ -1,0 +1,61 @@
+name: Helm Chart Version Bump (PR)
+
+on:
+  pull_request:
+    paths:
+      - "charts/**"
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install tools
+        run: npm install -g semver
+
+      - name: Determine bump level
+        id: bump
+        run: |
+          set -x
+          COMMITS=$(git log --pretty=%s origin/${{ github.event.pull_request.base.ref }}..HEAD)
+          echo "Commits in PR:"
+          echo "$COMMITS"
+
+          bump="patch"
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+            bump="major"
+          elif echo "$COMMITS" | grep -q "^feat"; then
+            bump="minor"
+          elif echo "$COMMITS" | grep -q "^fix"; then
+            bump="patch"
+          else
+            bump="none"
+          fi
+          echo "bump=$bump"
+          echo "bump=$bump" >> $GITHUB_OUTPUT
+
+      - name: Bump Chart.yaml version
+        if: steps.bump.outputs.bump != 'none'
+        run: |
+          for chart in $(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep Chart.yaml); do
+            current=$(grep '^version:' $chart | awk '{print $2}')
+            new=$(npx semver $current -i ${{ steps.bump.outputs.bump }})
+            echo "Updating $chart from $current to $new"
+            sed -i "s/^version:.*/version: $new/" $chart
+          done
+
+      - name: Commit bump
+        if: steps.bump.outputs.bump != 'none'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add charts/**/Chart.yaml
+          git commit -m "ci: bump chart version (${{ steps.bump.outputs.bump }})"
+          git push
