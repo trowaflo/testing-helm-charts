@@ -46,6 +46,12 @@ jobs:
         run: |
           for chart in charts/library/* charts/apps/*; do
             if [[ -f "$chart/Chart.yaml" ]]; then
+              # Skip library charts (they can't be templated directly)
+              chart_type=$(grep "^type:" "$chart/Chart.yaml" | awk '{print $2}')
+              if [[ "$chart_type" == "library" ]]; then
+                echo "Skipping library chart: $chart"
+                continue
+              fi
               echo "Testing templates for $chart"
               helm template test-release "$chart" > /dev/null
             fi
