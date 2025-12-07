@@ -65,7 +65,7 @@ jobs:
 
       - name: Add Helm repository
         run: |
-          helm repo add testing-helm-charts https://trowaflo.github.io/testing-helm-charts
+          helm repo add testing-helm-charts https://trowaflo.github.io/testing-helm-charts || true
           helm repo update
 
       - name: Build chart dependencies
