@@ -1,0 +1,16 @@
+apiVersion: v2
+name: webapp
+description: Web application using common library chart
+type: application
+version: 0.1.0
+appVersion: "1.0"
+dependencies:
+  - name: common
+    version: "0.1.0"
+    repository: "file://../../library/common"
+keywords:
+  - webapp
+  - application
+maintainers:
+  - name: Test User
+    email: test@example.com

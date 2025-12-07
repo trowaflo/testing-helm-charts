@@ -1,0 +1,12 @@
+apiVersion: v2
+name: common
+description: Common library chart with shared templates and helpers
+type: library
+version: 0.1.0
+appVersion: "1.0"
+keywords:
+  - common
+  - library
+maintainers:
+  - name: Test User
+    email: test@example.com
