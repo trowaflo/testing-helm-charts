@@ -25,14 +25,26 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
+      - name: Build chart dependencies
+        run: |
+          for chart in charts/library/*/; do
+            if [ -f "$chart/Chart.yaml" ]; then
+              echo "Building dependencies for $chart"
+              helm dependency build "$chart" || true
+            fi
+          done
+
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
         with:
           charts_dir: charts/library
+          skip_existing: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_SKIP_EXISTING: true
 
   release-apps:
+    needs: release-library
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -50,6 +62,15 @@ jobs:
 
       - name: Install Helm
         uses: azure/setup-helm@v4
+
+      - name: Build chart dependencies
+        run: |
+          for chart in charts/apps/*/; do
+            if [ -f "$chart/Chart.yaml" ]; then
+              echo "Building dependencies for $chart"
+              helm dependency build "$chart" || true
+            fi
+          done
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
