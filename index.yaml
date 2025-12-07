@@ -1,0 +1,23 @@
+apiVersion: v1
+entries:
+  common:
+  - apiVersion: v2
+    created: "2025-12-07T19:45:29.885967917Z"
+    description: Common library chart providing reusable Helm templates and default
+      configurations. Standardizes Kubernetes resource deployment (Deployments, Services,
+      Ingress, ServiceMonitor) across the chart repository with consistent security,
+      observability, and best practices.  Used by all application charts in this repository
+      for consistency.
+    digest: caabc3ff00c923f9f8f5c4fc167a889177e64f46aeafcfeae967ac93646ee804
+    home: https://github.com/trowaflo/helm-charts
+    maintainers:
+    - email: trowa.flo@gmail.com
+      name: trowaflo
+    name: common
+    sources:
+    - https://github.com/trowaflo/helm-charts
+    type: library
+    urls:
+    - https://github.com/trowaflo/testing-helm-charts/releases/download/common-1.1.0/common-1.1.0.tgz
+    version: 1.1.0
+generated: "2025-12-07T19:45:29.885973046Z"
