@@ -1,33 +1,18 @@
-# API configuration
-common:
-  replicaCount: 3
+---
+containers:
+  main:
+    args:
+      - "--test-arg=value"
 
-  image:
-    repository: python
-    pullPolicy: IfNotPresent
-    tag: "3.11-slim"
+    env:
+      - name: envtest
+        value: thevalue
+      - name: valuefrom
+        valueFrom:
+          secretKeyRef:
+            name: my-secret
+            key: password
 
-  service:
-    type: ClusterIP
-    port: 5000
-    targetPort: 5000
-
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1Gi
-    requests:
-      cpu: 500m
-      memory: 512Mi
-
-  autoscaling:
+ingress:
+  main:
     enabled: true
-    minReplicas: 3
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 80
-
-# Application-specific configuration
-appConfig:
-  name: "api"
-  environment: "production"
-  debug: false

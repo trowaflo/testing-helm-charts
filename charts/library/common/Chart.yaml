@@ -1,12 +1,16 @@
 apiVersion: v2
 name: common
-description: Common library chart with shared templates and helpers
+version: 1.0.0
 type: library
-version: 0.1.0
-appVersion: "1.0"
-keywords:
-  - common
-  - library
+description: |-
+  Common library chart providing reusable Helm templates and default configurations.
+  Standardizes Kubernetes resource deployment (Deployments, Services, Ingress, ServiceMonitor)
+  across the chart repository with consistent security, observability, and best practices.
+
+  Used by all application charts in this repository for consistency.
+home: https://github.com/trowaflo/helm-charts
 maintainers:
-  - name: Test User
-    email: test@example.com
+  - name: trowaflo
+    email: trowa.flo@gmail.com
+sources:
+  - https://github.com/trowaflo/helm-charts
