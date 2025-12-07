@@ -20,4 +20,71 @@ entries:
     urls:
     - https://github.com/trowaflo/testing-helm-charts/releases/download/common-1.1.0/common-1.1.0.tgz
     version: 1.1.0
-generated: "2025-12-07T22:28:03.890027934Z"
+  common-test:
+  - apiVersion: v2
+    created: "2025-12-07T22:29:18.024024883Z"
+    dependencies:
+    - name: common
+      repository: https://trowaflo.github.io/testing-helm-charts
+      version: 1.1.0
+    description: Test application chart demonstrating and validating the common library
+      chart functionality. Provides unit test scenarios covering common chart features
+      including deployments, services, ingress, security contexts, and Prometheus
+      integration.  This chart is NOT intended for production use. It serves as a
+      reference implementation and testing vehicle for the common library.
+    digest: 01231a82d4d7f0825e21bd8482166aa00139f42ec5d79b547b436d5d22a6e128
+    maintainers:
+    - email: trowa.flo@gmail.com
+      name: trowaflo
+    name: common-test
+    sources:
+    - https://github.com/trowaflo/helm-charts
+    type: application
+    urls:
+    - https://github.com/trowaflo/testing-helm-charts/releases/download/common-test-1.0.0/common-test-1.0.0.tgz
+    version: 1.0.0
+  - apiVersion: v2
+    created: "2025-12-07T22:29:17.850904626Z"
+    dependencies:
+    - name: common
+      repository: https://trowaflo.github.io/testing-helm-charts
+      version: 1.1.0
+    description: Test application chart demonstrating and validating the common library
+      chart functionality. Provides unit test scenarios covering common chart features
+      including deployments, services, ingress, security contexts, and Prometheus
+      integration.  This chart is NOT intended for production use. It serves as a
+      reference implementation and testing vehicle for the common library.
+    digest: b7bb67b9177d4f261f34c1281fafd4e25826e2a6385a8337c0944192038e8b38
+    maintainers:
+    - email: trowa.flo@gmail.com
+      name: trowaflo
+    name: common-test
+    sources:
+    - https://github.com/trowaflo/helm-charts
+    type: application
+    urls:
+    - https://github.com/trowaflo/testing-helm-charts/releases/download/common-test-0.2.0/common-test-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    created: "2025-12-07T22:29:17.682433843Z"
+    dependencies:
+    - name: common
+      repository: https://trowaflo.github.io/testing-helm-charts
+      version: 1.1.0
+    description: Test application chart demonstrating and validating the common library
+      chart functionality. Provides unit test scenarios covering common chart features
+      including deployments, services, ingress, security contexts, and Prometheus
+      integration.  This chart is NOT intended for production use. It serves as a
+      reference implementation and testing vehicle for the common library.
+    digest: b145a8f46f056d0838b68a82d3ed49c6a2810b36138a4139f9152b3c41d0f984
+    maintainers:
+    - email: trowa.flo@gmail.com
+      name: trowaflo
+    name: common-test
+    sources:
+    - https://github.com/trowaflo/helm-charts
+    type: application
+    urls:
+    - https://github.com/trowaflo/testing-helm-charts/releases/download/common-test-0.1.1/common-test-0.1.1.tgz
+    version: 0.1.1
+generated: "2025-12-07T22:29:18.024047962Z"
