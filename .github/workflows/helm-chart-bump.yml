@@ -58,6 +58,7 @@ jobs:
       - name: Bump Chart.yaml version
         if: steps.bump.outputs.bump != 'none'
         run: |
+          set -x
           # Récupérer la branche de base de la PR
           BASE_BRANCH=${{ github.event.pull_request.base.ref }}
           echo "Base branch: $BASE_BRANCH"
