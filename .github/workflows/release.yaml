@@ -42,6 +42,7 @@ jobs:
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           CR_SKIP_EXISTING: true
+          CR_GENERATE_RELEASE_NOTES: true
 
   release-apps:
     needs: release-library
@@ -83,3 +84,4 @@ jobs:
           charts_dir: charts/apps
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_GENERATE_RELEASE_NOTES: true
