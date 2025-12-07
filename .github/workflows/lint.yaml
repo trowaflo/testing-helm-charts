@@ -26,6 +26,8 @@ jobs:
         run: |
           for chart in charts/library/* charts/apps/*; do
             if [[ -f "$chart/Chart.yaml" ]]; then
+              echo "Updating dependencies for $chart"
+              helm dependency update "$chart"
               echo "Linting $chart"
               helm lint "$chart"
             fi
@@ -42,15 +44,6 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Dependency update for charts with dependencies
-        run: |
-          for chart in charts/library/common-test charts/apps/*; do
-            if [[ -f "$chart/Chart.yaml" && -f "$chart/Chart.lock" ]]; then
-              echo "Updating dependencies for $chart"
-              helm dependency update "$chart"
-            fi
-          done
-
       - name: Template test
         run: |
           for chart in charts/library/* charts/apps/*; do
@@ -61,6 +54,8 @@ jobs:
                 echo "Skipping library chart: $chart"
                 continue
               fi
+              echo "Updating dependencies for $chart"
+              helm dependency update "$chart"
               echo "Testing templates for $chart"
               helm template test-release "$chart" > /dev/null
             fi
