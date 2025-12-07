@@ -67,6 +67,10 @@ jobs:
           git fetch origin $BASE_BRANCH
 
           for chart_dir in $(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '^charts/' | xargs -n1 dirname | sort -u); do
+            while [ ! -f "$chart_dir/Chart.yaml" ] && [ "$chart_dir" != "." ]; do
+              chart_dir=$(dirname "$chart_dir")
+            done
+
             chart="$chart_dir/Chart.yaml"
             current=$(grep '^version:' $chart | awk '{print $2}')
             new=$(npx semver $current -i ${{ steps.bump.outputs.bump }})
