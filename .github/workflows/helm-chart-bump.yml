@@ -33,7 +33,7 @@ jobs:
           git fetch origin $BASE_BRANCH
 
           # Lister les commits depuis la branche de base
-          COMMITS=$(git log --pretty=%s --first-parent origin/$BASE_BRANCH..HEAD)
+          COMMITS=$(git log --pretty=%s --no-merges origin/$BASE_BRANCH..HEAD)
           echo "Commits in PR:"
           echo "$COMMITS"
 
