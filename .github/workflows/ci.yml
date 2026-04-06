@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  quality:
+    uses: trowaflo/github-actions/.github/workflows/quality.yml@fd881256daff836dd9595efd90f646c26a6deae4 # v2.0.0
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+      actions: read
+    with:
+      harden_runner_egress_policy: audit
