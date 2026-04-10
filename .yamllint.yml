@@ -1,0 +1,19 @@
+---
+extends: default
+
+rules:
+  line-length:
+    max: 150
+  truthy:
+    allowed-values: ["true", "false"]
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+  document-start: disable
+  empty-lines:
+    max: 2
+
+ignore:
+  - charts/**/templates/
+  - charts/**/charts/
+  - tests/

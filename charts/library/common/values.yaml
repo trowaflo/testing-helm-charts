@@ -7,8 +7,6 @@ replicaCount: 1
 # @section -- Global settings
 revisionHistoryLimit: 3
 
-
-
 # -- Override the Helm-generated release name. Lower priority than fullnameOverride
 # @section -- Global settings
 nameOverride: ''
