@@ -1,62 +1,19 @@
-name: Lint and Test
+name: Helm CI
 
 on:
   pull_request:
     paths:
-      - 'charts/**'
-  push:
-    branches:
-      - main
-    paths:
-      - 'charts/**'
+      - "charts/**"
+
+permissions: read-all
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Set up Helm
-        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
-        with:
-          version: 'latest'
-
-      - name: Lint all charts
-        run: |
-          for chart in charts/library/* charts/apps/*; do
-            if [[ -f "$chart/Chart.yaml" ]]; then
-              echo "Updating dependencies for $chart"
-              helm dependency update "$chart"
-              echo "Linting $chart"
-              helm lint "$chart"
-            fi
-          done
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Set up Helm
-        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
-        with:
-          version: 'latest'
-
-      - name: Template test
-        run: |
-          for chart in charts/library/* charts/apps/*; do
-            if [[ -f "$chart/Chart.yaml" ]]; then
-              # Skip library charts (they can't be templated directly)
-              chart_type=$(grep "^type:" "$chart/Chart.yaml" | awk '{print $2}')
-              if [[ "$chart_type" == "library" ]]; then
-                echo "Skipping library chart: $chart"
-                continue
-              fi
-              echo "Updating dependencies for $chart"
-              helm dependency update "$chart"
-              echo "Testing templates for $chart"
-              helm template test-release "$chart" > /dev/null
-            fi
-          done
+  helm-ci:
+    uses: trowaflo/github-actions/.github/workflows/ci-helm.yml@d51fc48891c455f85a902e3d23f8ac7a52ef273e # v1.1.0
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      harden_runner_egress_policy: audit
+      enable_lint: true
+      enable_bump: true

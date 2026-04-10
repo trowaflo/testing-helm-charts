@@ -1,0 +1,16 @@
+name: Helm PR Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions: read-all
+
+jobs:
+  cleanup:
+    uses: trowaflo/github-actions/.github/workflows/ci-helm-cleanup.yml@d51fc48891c455f85a902e3d23f8ac7a52ef273e # v1.1.0
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      harden_runner_egress_policy: audit
