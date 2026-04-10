@@ -5,83 +5,15 @@ on:
     branches:
       - main
 
+permissions: read-all
+
 jobs:
-  release-library:
-    runs-on: ubuntu-latest
+  release:
+    uses: trowaflo/github-actions/.github/workflows/release-helm.yml@d51fc48891c455f85a902e3d23f8ac7a52ef273e # v1.1.0
     permissions:
       contents: write
-      packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Install Helm
-        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
-
-      - name: Build chart dependencies
-        run: |
-          for chart in charts/library/*/; do
-            if [ -f "$chart/Chart.yaml" ]; then
-              echo "Building dependencies for $chart"
-              helm dependency build "$chart" || true
-            fi
-          done
-
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.7.0
-        with:
-          charts_dir: charts/library
-          skip_existing: true
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_SKIP_EXISTING: true
-          CR_GENERATE_RELEASE_NOTES: true
-
-  release-apps:
-    needs: release-library
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Install Helm
-        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
-
-      - name: Add Helm repository
-        run: |
-          helm repo add testing-helm-charts https://trowaflo.github.io/testing-helm-charts || true
-          helm repo update
-
-      - name: Build chart dependencies
-        run: |
-          for chart in charts/apps/*/; do
-            if [ -f "$chart/Chart.yaml" ]; then
-              echo "Building dependencies for $chart"
-              helm dependency build "$chart" || true
-            fi
-          done
-
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.7.0
-        with:
-          charts_dir: charts/apps
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_GENERATE_RELEASE_NOTES: true
+      pages: write
+    with:
+      harden_runner_egress_policy: audit
+      enable_release: true
+      release_charts_dirs: "charts/library charts/apps"
