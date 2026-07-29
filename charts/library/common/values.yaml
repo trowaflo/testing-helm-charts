@@ -35,7 +35,7 @@ containers:
     image:
       pullPolicy: Always
       repository: traefik/whoami
-      tag: latest
+      tag: latest@sha256:c4717a8d1f0134a7444e24f881160e033991f23027c6c5a9a3f8fd22e70d1d44
 
     # -- List of imagePullSecrets for private container registries. Reference pre-created Secrets in the same namespace
     # @section -- Containers configuration
